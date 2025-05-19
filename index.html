@@ -1,98 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Biometric Auth Demo</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      font-size: 16px;
-    }
-    #status {
-      margin-top: 30px;
-      font-weight: bold;
-      color: green;
-    }
-  </style>
-</head>
-<body>
-  <h1>Welcome</h1>
-  <button onclick="registerBiometric()">Enable Biometric Auth Auth Auth</button>
-  <button onclick="loginWithBiometric()">Login with Biometric</button>
-
-  <div id="status"></div>
-
-  <script>
-    const base64ToBytes = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-    const bytesToBase64 = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes)));
-
-    async function registerBiometric() {
-      const challenge = new Uint8Array(32);
-      crypto.getRandomValues(challenge);
-
-      const userId = new TextEncoder().encode('user-id-123'); // can be anything
-
-      const publicKey = {
-        challenge,
-        rp: { name: "My App" },
-        user: {
-          id: userId,
-          name: "user@example.com",
-          displayName: "Demo User"
-        },
-        pubKeyCredParams: [{ type: "public-key", alg: -7 }],
-        authenticatorSelection: { userVerification: "preferred" },
-        timeout: 60000,
-        attestation: "none"
-      };
-
-      try {
-        const credential = await navigator.credentials.create({ publicKey });
-        const rawId = credential.rawId;
-        const idB64 = bytesToBase64(rawId);
-        localStorage.setItem("credentialId", idB64);
-        document.getElementById("status").textContent = "Biometric setup complete!";
-      } catch (err) {
-        console.error(err);
-        document.getElementById("status").textContent = "Biometric setup failed.";
+  <head>
+    <meta charset="UTF-8" />
+    <title>Biometric Auth Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 50px;
       }
-    }
+      button {
+        padding: 10px 20px;
+        margin: 10px;
+        font-size: 16px;
+      }
+      #status {
+        margin-top: 30px;
+        font-weight: bold;
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome</h1>
+    <button onclick="registerBiometric()">Enable Biometric Auth Auth</button>
+    <button onclick="loginWithBiometric()">Login with Biometric</button>
 
-    async function loginWithBiometric() {
-      const idB64 = localStorage.getItem("credentialId");
-      if (!idB64) {
-        document.getElementById("status").textContent = "No credential registered.";
-        return;
+    <div id="status"></div>
+
+    <script>
+      const base64ToBytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const bytesToBase64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
+
+      async function registerBiometric() {
+        const challenge = new Uint8Array(32);
+        crypto.getRandomValues(challenge);
+
+        const userId = new TextEncoder().encode("user-id-123"); // can be anything
+
+        const publicKey = {
+          challenge,
+          rp: { name: "My App" },
+          user: {
+            id: userId,
+            name: "user@example.com",
+            displayName: "Demo User",
+          },
+          pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+          authenticatorSelection: { userVerification: "preferred" },
+          timeout: 60000,
+          attestation: "none",
+        };
+
+        try {
+          const credential = await navigator.credentials.create({ publicKey });
+          const rawId = credential.rawId;
+          const idB64 = bytesToBase64(rawId);
+          localStorage.setItem("credentialId", idB64);
+          document.getElementById("status").textContent = "Biometric setup complete!";
+        } catch (err) {
+          console.error(err);
+          document.getElementById("status").textContent = "Biometric setup failed.";
+        }
       }
 
-      const challenge = new Uint8Array(32);
-      crypto.getRandomValues(challenge);
+      async function loginWithBiometric() {
+        const idB64 = localStorage.getItem("credentialId");
+        if (!idB64) {
+          document.getElementById("status").textContent = "No credential registered.";
+          return;
+        }
 
-      const publicKey = {
-        challenge,
-        allowCredentials: [{
-          id: base64ToBytes(idB64),
-          type: "public-key",
-        }],
-        userVerification: "preferred",
-        timeout: 60000
-      };
+        const challenge = new Uint8Array(32);
+        crypto.getRandomValues(challenge);
 
-      try {
-        const assertion = await navigator.credentials.get({ publicKey });
-        document.getElementById("status").textContent = "Biometric login successful!";
-        console.log("Assertion response:", assertion);
-      } catch (err) {
-        console.error(err);
-        document.getElementById("status").textContent = "Biometric login failed.";
+        const publicKey = {
+          challenge,
+          allowCredentials: [
+            {
+              id: base64ToBytes(idB64),
+              type: "public-key",
+            },
+          ],
+          userVerification: "preferred",
+          timeout: 60000,
+        };
+
+        try {
+          const assertion = await navigator.credentials.get({ publicKey });
+          document.getElementById("status").textContent = "Biometric login successful!";
+          console.log("Assertion response:", assertion);
+        } catch (err) {
+          console.error(err);
+          document.getElementById("status").textContent = "Biometric login failed.";
+        }
       }
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>
